@@ -35,7 +35,7 @@ contract CryptoPetsTest is Test {
         cryptoPets.mintPet("John", "Golden retriever", 8);
         //assert(cryptoPets._exists(0));
         cryptoPets.updateAge(0, 5);
-        (, , , uint8 newAge_) = cryptoPets.getPetInfo(0);
+        (,,, uint8 newAge_) = cryptoPets.getPetInfo(0);
         assertEq(newAge_, 5);
         vm.stopPrank();
     }

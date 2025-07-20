@@ -9,9 +9,7 @@ import "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
  * @title CryptoPets
  * @notice ERC721 contract for virtual pet management
  */
-
 contract CryptoPets is ERC721, Ownable {
-
     mapping(uint256 => Pet) pets;
     uint256 currentTokenId;
 
@@ -27,10 +25,7 @@ contract CryptoPets is ERC721, Ownable {
         address creator;
     }
 
-    constructor(string memory name_, string memory symbol_) 
-        ERC721(name_, symbol_) 
-        Ownable(msg.sender)
-    {}
+    constructor(string memory name_, string memory symbol_) ERC721(name_, symbol_) Ownable(msg.sender) {}
 
     /// @notice Creates a new Pet for the user
     function mintPet(string memory name_, string memory breed_, uint8 age_) external {
@@ -43,7 +38,7 @@ contract CryptoPets is ERC721, Ownable {
     }
 
     /// @notice Returns pet's data
-    function getPetInfo(uint256 tokenId_) external view returns(uint256, string memory, string memory, uint8) {
+    function getPetInfo(uint256 tokenId_) external view returns (uint256, string memory, string memory, uint8) {
         Pet memory pet = pets[tokenId_];
         return (pet.tokenId, pet.name, pet.breed, pet.age);
     }
