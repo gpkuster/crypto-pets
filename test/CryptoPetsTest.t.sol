@@ -7,8 +7,8 @@ import "../src/CryptoPets.sol";
 contract CryptoPetsTest is Test {
     CryptoPets cryptoPets;
     address public admin = vm.addr(1);
-    address public randomUser1 = vm.addr(2);
-    address public randomUser2 = vm.addr(3);
+    address public petCreator = vm.addr(2);
+    address public petSecondOwner = vm.addr(3);
 
     string name = "Crypto Pets NFT by Guillermo Pastor";
     string symbol = "GPPET";
@@ -16,6 +16,9 @@ contract CryptoPetsTest is Test {
     function setUp() public {
         vm.startPrank(admin);
         cryptoPets = new CryptoPets(name, symbol);
+        vm.stopPrank();
+        vm.startPrank(petCreator);
+        cryptoPets.mintPet("John", "Golden retriever", 8);
         vm.stopPrank();
     }
 
@@ -28,15 +31,48 @@ contract CryptoPetsTest is Test {
         assertEq(cryptoPets.symbol(), symbol);
     }
 
-    // Happy paths
-    function testMintPetAndUpdateAge() public {
-        //given
-        vm.startPrank(randomUser1);
-        cryptoPets.mintPet("John", "Golden retriever", 8);
-        //assert(cryptoPets._exists(0));
+    // Happy path
+    function testMintPetAndUpdateAgeAndName() public {
+        vm.startPrank(petCreator);
         cryptoPets.updateAge(0, 5);
-        (,,, uint8 newAge_) = cryptoPets.getPetInfo(0);
+        cryptoPets.updateName(0, "Laura");
+        (, string memory newName_,, uint8 newAge_) = cryptoPets.getPetInfo(0);
         assertEq(newAge_, 5);
+        assertEq(newName_, "Laura");
+        vm.stopPrank();
+    }
+
+    // Reverts
+    function testOnlyOwnerCanUpdateName() public {
+        vm.startPrank(petCreator);
+        cryptoPets.safeTransferFrom(petCreator, petSecondOwner, 0);
+        assertEq(cryptoPets.ownerOf(0), petSecondOwner);
+
+        vm.expectRevert("Not the owner");
+        cryptoPets.updateName(0, "Laura");
+        vm.stopPrank();
+    }
+
+    function testOnlyCreatorCanUpdateAge() public {
+        vm.startPrank(petCreator);
+        cryptoPets.safeTransferFrom(petCreator, petSecondOwner, 0);
+        assertEq(cryptoPets.ownerOf(0), petSecondOwner);
+
+        vm.expectRevert("Not the original creator");
+        vm.startPrank(petSecondOwner);
+        cryptoPets.updateAge(0, 10);
+        vm.stopPrank();
+    }
+
+    function testPetMustExistForAgeUpdate() public {
+        vm.expectRevert("Pet does not exist");
+        cryptoPets.updateAge(1, 10);
+        vm.stopPrank();
+    }
+
+    function testPetMustExistForNameUpdate() public {
+        vm.expectRevert("Pet does not exist");
+        cryptoPets.updateName(1, "New name");
         vm.stopPrank();
     }
 }
