@@ -16,9 +16,15 @@ contract CryptoPets is ERC721, Ownable {
     mapping(uint256 => Pet) pets;
     uint256 currentTokenId;
 
+    // For voting
+    mapping(address => uint256) public ownerVotes; // owner => tokenId they voted for (0 if none)
+    mapping(uint256 => uint256) public petVotes; // tokenId => vote count
+    uint256 public maxVotes; // highest votes count so far
+
     event PetMinted(uint256 tokenId, string name, string breed, uint8 age, address creator);
     event AgeUpdated(uint256 tokenId, uint8 age);
     event NameUpdated(uint256 tokenId, string name);
+    event VoteCast(address voter, uint256 tokenId);
 
     struct Pet {
         uint256 tokenId;
@@ -62,19 +68,70 @@ contract CryptoPets is ERC721, Ownable {
         emit NameUpdated(tokenId_, newName_);
     }
 
+    /// @notice Returns the pet's data in JSON format
     function tokenMetadataURI(uint256 tokenId_) external view returns (string memory) {
         require(_exists(tokenId_), "Pet does not exist");
         Pet memory pet = pets[tokenId_];
 
         // Simple JSON string (not base64 encoded)
         return string(
-            abi.encodePacked(
-                '{"name":"', pet.name,
-                '", "breed":"', pet.breed,
-                '", "age":', pet.age.toString(),
-                '}'
-            )
+            abi.encodePacked('{"name":"', pet.name, '", "breed":"', pet.breed, '", "age":', pet.age.toString(), "}")
         );
+    }
+
+    /// @notice Vote for the cutest pet by tokenId
+    function voteCutestPet(uint256 tokenId_) external {
+        require(_exists(tokenId_), "Pet does not exist");
+        require(balanceOf(msg.sender) > 0, "Invalid pet owner");
+
+        uint256 previousVote = ownerVotes[msg.sender];
+        if (previousVote == tokenId_) {
+            // Already voted for this pet, do nothing
+            return;
+        }
+
+        // Remove previous vote if any
+        if (previousVote != 0) {
+            petVotes[previousVote]--;
+        }
+
+        // Register new vote
+        ownerVotes[msg.sender] = tokenId_;
+        petVotes[tokenId_]++;
+
+        // Update maxVotes if needed
+        if (petVotes[tokenId_] > maxVotes) {
+            maxVotes = petVotes[tokenId_];
+        }
+
+        emit VoteCast(msg.sender, tokenId_);
+    }
+
+    /// @notice Returns tokenId(s) with the highest votes (could be multiple ties)
+    function getCutestPets() external view returns (uint256[] memory) {
+        uint256[] memory winners;
+
+        if (maxVotes == 0) {
+            return winners; // no votes cast yet
+        }
+
+        // Count how many pets have maxVotes
+        uint256 count = 0;
+        for (uint256 i = 0; i < currentTokenId; i++) {
+            if (petVotes[i] == maxVotes) {
+                count++;
+            }
+        }
+
+        winners = new uint256[](count);
+        uint256 index = 0;
+        for (uint256 i = 0; i < currentTokenId; i++) {
+            if (petVotes[i] == maxVotes) {
+                winners[index++] = i;
+            }
+        }
+
+        return winners;
     }
 
     /// @dev Checks if the tokenId exists

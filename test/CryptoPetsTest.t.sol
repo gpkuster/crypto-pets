@@ -5,10 +5,17 @@ import "forge-std/Test.sol";
 import "../src/CryptoPets.sol";
 
 contract CryptoPetsTest is Test {
+    // For pet management
     CryptoPets cryptoPets;
     address public admin = vm.addr(1);
     address public petCreator = vm.addr(2);
     address public petSecondOwner = vm.addr(3);
+
+    // For voting
+    address public voter1 = vm.addr(4);
+    address public voter2 = vm.addr(5);
+    address public voter3 = vm.addr(6);
+    address public voter4 = vm.addr(7);
 
     string name = "Crypto Pets NFT by Guillermo Pastor";
     string symbol = "GPPET";
@@ -88,5 +95,106 @@ contract CryptoPetsTest is Test {
     function testJSONIsNotGeneratedIfTokenDoesntExist() public {
         vm.expectRevert("Pet does not exist");
         cryptoPets.tokenMetadataURI(1);
+    }
+
+    // Voting system
+    // Happy paths
+    function testVoteCutestPetJustOneWinner() public {
+        vm.startPrank(voter1);
+        // tokenId = 1
+        cryptoPets.mintPet("Roco", "Parrot", 10);
+        cryptoPets.voteCutestPet(0);
+        vm.startPrank(voter2);
+        // tokenId = 2
+        cryptoPets.mintPet("Will", "Silver cat", 2);
+        cryptoPets.voteCutestPet(1);
+        vm.startPrank(voter3);
+        // tokenId = 3
+        cryptoPets.mintPet("May", "Golden retriever", 3);
+        cryptoPets.voteCutestPet(1);
+        vm.startPrank(voter4);
+        // tokenId = 4
+        cryptoPets.mintPet("Lawrence", "Beagle", 3);
+        cryptoPets.voteCutestPet(1);
+
+        // There's just 1 winner
+        assertEq(cryptoPets.getCutestPets().length, 1);
+        // winner is tokenId = 1
+        assertEq(cryptoPets.getCutestPets()[0], 1);
+
+        vm.stopPrank();
+    }
+
+    function testVoteCutestPetManyWinners() public {
+        vm.startPrank(voter1);
+        // tokenId = 1
+        cryptoPets.mintPet("Roco", "Parrot", 10);
+        cryptoPets.voteCutestPet(1);
+        vm.startPrank(voter2);
+        // tokenId = 2
+        cryptoPets.mintPet("Will", "Silver cat", 2);
+        cryptoPets.voteCutestPet(1);
+        vm.startPrank(voter3);
+        // tokenId = 3
+        cryptoPets.mintPet("May", "Golden retriever", 3);
+        cryptoPets.voteCutestPet(2);
+        vm.startPrank(voter4);
+        // tokenId = 4
+        cryptoPets.mintPet("Lawrence", "Beagle", 3);
+        cryptoPets.voteCutestPet(2);
+
+        // There are 2 winners
+        assertEq(cryptoPets.getCutestPets().length, 2);
+        // There's a tie between 1 and 2
+        assert(cryptoPets.getCutestPets()[0] == 1 || cryptoPets.getCutestPets()[0] == 2);
+        assert(cryptoPets.getCutestPets()[1] == 1 || cryptoPets.getCutestPets()[1] == 2);
+
+        vm.stopPrank();
+    }
+
+    function testChangeVoteSuccesfully() public {
+        vm.startPrank(voter1);
+        // tokenId = 1
+        cryptoPets.mintPet("Roco", "Parrot", 10);
+        cryptoPets.voteCutestPet(1);
+        assertEq(cryptoPets.getCutestPets()[0], 1);
+        assertEq(cryptoPets.getCutestPets().length, 1);
+
+        // same vote does nothing
+        cryptoPets.voteCutestPet(1);
+        assertEq(cryptoPets.getCutestPets()[0], 1);
+        assertEq(cryptoPets.getCutestPets().length, 1);
+
+        // changin vote allowed
+        cryptoPets.voteCutestPet(0);
+        assertEq(cryptoPets.getCutestPets()[0], 0);
+        assertEq(cryptoPets.getCutestPets().length, 1);
+
+        vm.stopPrank();
+    }
+
+    function testIfNoVotesShouldReturnEmptyArray() public {
+        assertEq(cryptoPets.getCutestPets().length, 0);
+    }
+
+    // Reverts
+    function testPetMustExistForVotingIt() public {
+        vm.startPrank(voter1);
+        // tokenId = 1
+        cryptoPets.mintPet("Roco", "Parrot", 10);
+
+        vm.expectRevert("Pet does not exist");
+        cryptoPets.voteCutestPet(2);
+
+        vm.stopPrank();
+    }
+
+    function testAddressMustOwnAPetBeforeVoting() public {
+        vm.startPrank(voter1);
+
+        vm.expectRevert("Invalid pet owner");
+        cryptoPets.voteCutestPet(0);
+
+        vm.stopPrank();
     }
 }
