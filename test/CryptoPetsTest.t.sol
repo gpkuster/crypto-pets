@@ -173,7 +173,7 @@ contract CryptoPetsTest is Test {
         vm.stopPrank();
     }
 
-    function testIfNoVotesShouldReturnEmptyArray() public {
+    function testIfNoVotesShouldReturnEmptyArray() public view {
         assertEq(cryptoPets.getCutestPets().length, 0);
     }
 

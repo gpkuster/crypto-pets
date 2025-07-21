@@ -27,7 +27,17 @@ Example return:
 }
 ```
 
+### 🗳️ Voting System: Cutest Pet
+
+A simple voting mechanism allows users to vote for the cutest pet by tokenId:
+- One vote per wallet (vote can be changed).
+- Votes are tracked and counted.
+- Multiple pets can tie for most votes.
+#### Relevant functions:
+voteCutestPet(uint256 tokenId): Cast or change your vote.
+getCutestPets(): Returns an array of tokenIds with the highest votes.
+
 ## 🚧 Future improvements
 
-### 🗳️ Voting System: Cutest Pet
-A simple voting mechanism allows users to vote for the cutest pet by tokenId:
+###  Include a deployment Script
+Deploy to Sepolia and test the cntract in live environment.
