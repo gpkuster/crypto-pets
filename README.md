@@ -13,9 +13,21 @@ Each minted pet is assigned a unique tokenId and stored with metadata on-chain.
 - **Age**: Can be updated only by the pet's original creator.
 - **Name**: Can be updated only by the current owner of the pet.
 
-## 🚧 Future improvements
-### Metadata URI
+### 📲 Metadata URI
 Each pet can be queried for a simple on-chain JSON string using:
+```
+function tokenMetadataURI(uint256 tokenId) public view returns (string memory)
+```
+Example return:
+```
+{
+  "name": "Fluffy",
+  "breed": "Shiba Inu",
+  "age": 3
+}
+```
+
+## 🚧 Future improvements
 
 ### 🗳️ Voting System: Cutest Pet
 A simple voting mechanism allows users to vote for the cutest pet by tokenId:

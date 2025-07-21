@@ -4,12 +4,15 @@ pragma solidity ^0.8.24;
 
 import "../lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
 import "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
+import {Strings} from "../lib/openzeppelin-contracts/contracts/utils/Strings.sol";
 
 /**
  * @title CryptoPets
  * @notice ERC721 contract for virtual pet management
  */
 contract CryptoPets is ERC721, Ownable {
+    using Strings for uint8;
+
     mapping(uint256 => Pet) pets;
     uint256 currentTokenId;
 
@@ -57,6 +60,21 @@ contract CryptoPets is ERC721, Ownable {
         require(msg.sender == ownerOf(tokenId_), "Not the owner");
         pets[tokenId_].name = newName_;
         emit NameUpdated(tokenId_, newName_);
+    }
+
+    function tokenMetadataURI(uint256 tokenId_) external view returns (string memory) {
+        require(_exists(tokenId_), "Pet does not exist");
+        Pet memory pet = pets[tokenId_];
+
+        // Simple JSON string (not base64 encoded)
+        return string(
+            abi.encodePacked(
+                '{"name":"', pet.name,
+                '", "breed":"', pet.breed,
+                '", "age":', pet.age.toString(),
+                '}'
+            )
+        );
     }
 
     /// @dev Checks if the tokenId exists

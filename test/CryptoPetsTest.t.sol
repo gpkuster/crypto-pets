@@ -31,6 +31,7 @@ contract CryptoPetsTest is Test {
         assertEq(cryptoPets.symbol(), symbol);
     }
 
+    // Pet minting and updating
     // Happy path
     function testMintPetAndUpdateAgeAndName() public {
         vm.startPrank(petCreator);
@@ -74,5 +75,18 @@ contract CryptoPetsTest is Test {
         vm.expectRevert("Pet does not exist");
         cryptoPets.updateName(1, "New name");
         vm.stopPrank();
+    }
+
+    // JSON generation
+    // Happy path
+    function testJSONIsGeneratedCorrectly() public view {
+        string memory tokenMetadataURI = cryptoPets.tokenMetadataURI(0);
+        assertEq(tokenMetadataURI, '{"name":"John", "breed":"Golden retriever", "age":8}');
+    }
+
+    // Reverts
+    function testJSONIsNotGeneratedIfTokenDoesntExist() public {
+        vm.expectRevert("Pet does not exist");
+        cryptoPets.tokenMetadataURI(1);
     }
 }
