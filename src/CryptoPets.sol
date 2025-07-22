@@ -133,22 +133,31 @@ contract CryptoPets is ERC721, Ownable {
 
         string memory json = string(
             abi.encodePacked(
-                '{',
-                    '"name":"', pet.name, '",',
-                    '"description":"CryptoPet NFT ', tokenId_.toString(), '",',
-                    '"image":"ipfs://', pet.image, '",',
-                    '"attributes":[',
-                        '{ "trait_type": "Breed", "value": "', pet.breed, '" },',
-                        '{ "trait_type": "Age", "value": "', pet.age.toString(), '" }',
-                    ']',
-                '}'
+                "{",
+                '"name":"',
+                pet.name,
+                '",',
+                '"description":"CryptoPet NFT ',
+                tokenId_.toString(),
+                '",',
+                '"image":"ipfs://',
+                pet.image,
+                '",',
+                '"attributes":[',
+                '{ "trait_type": "Breed", "value": "',
+                pet.breed,
+                '" },',
+                '{ "trait_type": "Age", "value": "',
+                pet.age.toString(),
+                '" }',
+                "]",
+                "}"
             )
         );
 
         //string memory encodedJson = Base64.encode(bytes(json));
         return string(abi.encodePacked("data:application/json;base64,", json));
     }
-
 
     /// @dev Checks if the tokenId exists
     function _exists(uint256 tokenId) internal view returns (bool) {

@@ -34,8 +34,8 @@ A simple voting mechanism allows users to vote for the cutest pet by tokenId:
 - Votes are tracked and counted.
 - Multiple pets can tie for most votes.
 #### Relevant functions:
-voteCutestPet(uint256 tokenId): Cast or change your vote.
-getCutestPets(): Returns an array of tokenIds with the highest votes.
+- `voteCutestPet(uint256 tokenId)`: Cast or change your vote.
+- `getCutestPets()`: Returns an array of tokenIds with the highest votes.
 
 ## 🚧 Future improvements
 

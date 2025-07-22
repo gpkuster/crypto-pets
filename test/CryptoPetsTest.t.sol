@@ -88,7 +88,8 @@ contract CryptoPetsTest is Test {
     // Happy path
     function testJSONIsGeneratedCorrectly() public view {
         string memory tokenURI = cryptoPets.tokenURI(0);
-        string memory expectedURI = 'data:application/json;base64,{"name":"John","description":"CryptoPet NFT 0","image":"ipfs://image_uri","attributes":[{ "trait_type": "Breed", "value": "Golden retriever" },{ "trait_type": "Age", "value": "8" }]}';
+        string memory expectedURI =
+            'data:application/json;base64,{"name":"John","description":"CryptoPet NFT 0","image":"ipfs://image_uri","attributes":[{ "trait_type": "Breed", "value": "Golden retriever" },{ "trait_type": "Age", "value": "8" }]}';
         assertEq(expectedURI, tokenURI);
     }
 
