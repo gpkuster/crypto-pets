@@ -4,6 +4,7 @@ pragma solidity ^0.8.24;
 
 import "../lib/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
 import "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
+import "../lib/openzeppelin-contracts/contracts/utils/Base64.sol";
 import {Strings} from "../lib/openzeppelin-contracts/contracts/utils/Strings.sol";
 
 /**
@@ -12,6 +13,7 @@ import {Strings} from "../lib/openzeppelin-contracts/contracts/utils/Strings.sol
  */
 contract CryptoPets is ERC721, Ownable {
     using Strings for uint8;
+    using Strings for uint256;
 
     mapping(uint256 => Pet) pets;
     uint256 currentTokenId;
@@ -32,14 +34,15 @@ contract CryptoPets is ERC721, Ownable {
         string breed;
         uint8 age;
         address creator;
+        string image;
     }
 
     constructor(string memory name_, string memory symbol_) ERC721(name_, symbol_) Ownable(msg.sender) {}
 
     /// @notice Creates a new Pet for the user
-    function mintPet(string memory name_, string memory breed_, uint8 age_) external {
+    function mintPet(string memory name_, string memory breed_, uint8 age_, string memory image) external {
         _safeMint(msg.sender, currentTokenId);
-        Pet memory newPet = Pet(currentTokenId, name_, breed_, age_, msg.sender);
+        Pet memory newPet = Pet(currentTokenId, name_, breed_, age_, msg.sender, image);
         pets[currentTokenId] = newPet;
         emit PetMinted(currentTokenId, newPet.name, newPet.breed, newPet.age, newPet.creator);
 
@@ -66,17 +69,6 @@ contract CryptoPets is ERC721, Ownable {
         require(msg.sender == ownerOf(tokenId_), "Not the owner");
         pets[tokenId_].name = newName_;
         emit NameUpdated(tokenId_, newName_);
-    }
-
-    /// @notice Returns the pet's data in JSON format
-    function tokenMetadataURI(uint256 tokenId_) external view returns (string memory) {
-        require(_exists(tokenId_), "Pet does not exist");
-        Pet memory pet = pets[tokenId_];
-
-        // Simple JSON string (not base64 encoded)
-        return string(
-            abi.encodePacked('{"name":"', pet.name, '", "breed":"', pet.breed, '", "age":', pet.age.toString(), "}")
-        );
     }
 
     /// @notice Vote for the cutest pet by tokenId
@@ -133,6 +125,30 @@ contract CryptoPets is ERC721, Ownable {
 
         return winners;
     }
+
+    /// @notice Returns the pet's data in JSON format, base64 encoded
+    function tokenURI(uint256 tokenId_) public view override returns (string memory) {
+        require(_exists(tokenId_), "Pet does not exist");
+        Pet memory pet = pets[tokenId_];
+
+        string memory json = string(
+            abi.encodePacked(
+                '{',
+                    '"name":"', pet.name, '",',
+                    '"description":"CryptoPet NFT ', tokenId_.toString(), '",',
+                    '"image":"ipfs://', pet.image, '",',
+                    '"attributes":[',
+                        '{ "trait_type": "Breed", "value": "', pet.breed, '" },',
+                        '{ "trait_type": "Age", "value": "', pet.age.toString(), '" }',
+                    ']',
+                '}'
+            )
+        );
+
+        //string memory encodedJson = Base64.encode(bytes(json));
+        return string(abi.encodePacked("data:application/json;base64,", json));
+    }
+
 
     /// @dev Checks if the tokenId exists
     function _exists(uint256 tokenId) internal view returns (bool) {

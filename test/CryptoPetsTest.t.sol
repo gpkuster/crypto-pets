@@ -25,7 +25,7 @@ contract CryptoPetsTest is Test {
         cryptoPets = new CryptoPets(name, symbol);
         vm.stopPrank();
         vm.startPrank(petCreator);
-        cryptoPets.mintPet("John", "Golden retriever", 8);
+        cryptoPets.mintPet("John", "Golden retriever", 8, "image_uri");
         vm.stopPrank();
     }
 
@@ -87,14 +87,15 @@ contract CryptoPetsTest is Test {
     // JSON generation
     // Happy path
     function testJSONIsGeneratedCorrectly() public view {
-        string memory tokenMetadataURI = cryptoPets.tokenMetadataURI(0);
-        assertEq(tokenMetadataURI, '{"name":"John", "breed":"Golden retriever", "age":8}');
+        string memory tokenURI = cryptoPets.tokenURI(0);
+        string memory expectedURI = 'data:application/json;base64,{"name":"John","description":"CryptoPet NFT 0","image":"ipfs://image_uri","attributes":[{ "trait_type": "Breed", "value": "Golden retriever" },{ "trait_type": "Age", "value": "8" }]}';
+        assertEq(expectedURI, tokenURI);
     }
 
     // Reverts
     function testJSONIsNotGeneratedIfTokenDoesntExist() public {
         vm.expectRevert("Pet does not exist");
-        cryptoPets.tokenMetadataURI(1);
+        cryptoPets.tokenURI(1);
     }
 
     // Voting system
@@ -102,19 +103,19 @@ contract CryptoPetsTest is Test {
     function testVoteCutestPetJustOneWinner() public {
         vm.startPrank(voter1);
         // tokenId = 1
-        cryptoPets.mintPet("Roco", "Parrot", 10);
+        cryptoPets.mintPet("Roco", "Parrot", 10, "image_uri");
         cryptoPets.voteCutestPet(0);
         vm.startPrank(voter2);
         // tokenId = 2
-        cryptoPets.mintPet("Will", "Silver cat", 2);
+        cryptoPets.mintPet("Will", "Silver cat", 2, "image_uri");
         cryptoPets.voteCutestPet(1);
         vm.startPrank(voter3);
         // tokenId = 3
-        cryptoPets.mintPet("May", "Golden retriever", 3);
+        cryptoPets.mintPet("May", "Golden retriever", 3, "image_uri");
         cryptoPets.voteCutestPet(1);
         vm.startPrank(voter4);
         // tokenId = 4
-        cryptoPets.mintPet("Lawrence", "Beagle", 3);
+        cryptoPets.mintPet("Lawrence", "Beagle", 3, "image_uri");
         cryptoPets.voteCutestPet(1);
 
         // There's just 1 winner
@@ -128,19 +129,19 @@ contract CryptoPetsTest is Test {
     function testVoteCutestPetManyWinners() public {
         vm.startPrank(voter1);
         // tokenId = 1
-        cryptoPets.mintPet("Roco", "Parrot", 10);
+        cryptoPets.mintPet("Roco", "Parrot", 10, "image_uri");
         cryptoPets.voteCutestPet(1);
         vm.startPrank(voter2);
         // tokenId = 2
-        cryptoPets.mintPet("Will", "Silver cat", 2);
+        cryptoPets.mintPet("Will", "Silver cat", 2, "image_uri");
         cryptoPets.voteCutestPet(1);
         vm.startPrank(voter3);
         // tokenId = 3
-        cryptoPets.mintPet("May", "Golden retriever", 3);
+        cryptoPets.mintPet("May", "Golden retriever", 3, "image_uri");
         cryptoPets.voteCutestPet(2);
         vm.startPrank(voter4);
         // tokenId = 4
-        cryptoPets.mintPet("Lawrence", "Beagle", 3);
+        cryptoPets.mintPet("Lawrence", "Beagle", 3, "image_uri");
         cryptoPets.voteCutestPet(2);
 
         // There are 2 winners
@@ -155,7 +156,7 @@ contract CryptoPetsTest is Test {
     function testChangeVoteSuccesfully() public {
         vm.startPrank(voter1);
         // tokenId = 1
-        cryptoPets.mintPet("Roco", "Parrot", 10);
+        cryptoPets.mintPet("Roco", "Parrot", 10, "image_uri");
         cryptoPets.voteCutestPet(1);
         assertEq(cryptoPets.getCutestPets()[0], 1);
         assertEq(cryptoPets.getCutestPets().length, 1);
@@ -181,7 +182,7 @@ contract CryptoPetsTest is Test {
     function testPetMustExistForVotingIt() public {
         vm.startPrank(voter1);
         // tokenId = 1
-        cryptoPets.mintPet("Roco", "Parrot", 10);
+        cryptoPets.mintPet("Roco", "Parrot", 10, "image_uri");
 
         vm.expectRevert("Pet does not exist");
         cryptoPets.voteCutestPet(2);
