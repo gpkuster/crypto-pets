@@ -72,3 +72,7 @@ forge script script/DeployCryptoPets.s.sol \
   --verify \
   --chain-id 11155111
 ````
+
+## 👨‍💻 Author
+Created by Guillermo Pastor
+📫 Contact: gpastor.kuster@gmail.com
